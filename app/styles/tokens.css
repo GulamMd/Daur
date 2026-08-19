@@ -1,0 +1,149 @@
+/* ===========================================================================
+ * Daur — design tokens
+ * Committed in Phase 0.5. Rationale: docs/design-direction.md
+ *
+ * This is the ONLY file permitted to contain raw hex values.
+ * Verify with: npm run check:design
+ * =========================================================================== */
+
+:root {
+  /* -- brand: the material world of a pre-dawn Indian road race ------------ */
+  --daur-asphalt: #1a1d21; /* road surface — blue-grey, not warm black       */
+  --daur-bib: #fafaf7; /* bib card stock — paper white, NOT cream            */
+  --daur-chalk: #e4e4de; /* lane markings, chalk start line                  */
+  --daur-sodium: #ff8a1f; /* sodium-vapour streetlight at 5 AM               */
+  --daur-signal: #00933f; /* traffic signal green — STATUS ONLY              */
+
+  /* -- derived inks -------------------------------------------------------
+   * The saturated brand values fail as text on light. These exist so that
+   * nobody reaches for the wrong one:
+   *   --daur-sodium as text on --daur-bib = 2.25:1  ← never do this
+   *   --daur-sodium-ink on --daur-bib     = 5.98:1  ← do this
+   * --------------------------------------------------------------------- */
+  --daur-sodium-ink: #9a4a05;
+  --daur-signal-ink: #076b36;
+  --daur-muted: #5a6068;
+
+  /* -- semantic layer — components reference THESE, not the brand tokens -- */
+  --daur-surface: var(--daur-bib);
+  --daur-surface-sunk: #f2f2ed;
+  --daur-surface-inverse: var(--daur-asphalt);
+  --daur-border: var(--daur-chalk);
+  --daur-text: var(--daur-asphalt);
+  --daur-text-muted: var(--daur-muted);
+  --daur-text-inverse: var(--daur-bib);
+
+  /* The sticky CTA is asphalt ON sodium (7.17:1), never white on sodium. */
+  --daur-accent: var(--daur-sodium);
+  --daur-accent-text: var(--daur-asphalt);
+
+  /* -- geometry ------------------------------------------------------------ */
+  --daur-radius: 0.375rem;
+  --daur-radius-bib: 0.75rem;
+  --daur-header-h: 3.5rem;
+}
+
+/* No prefers-color-scheme block by design. Darkness is used deliberately in
+ * the hero zone via .on-asphalt, not surrendered to a user preference.
+ * See "No automatic dark mode" in docs/design-direction.md. */
+
+@theme inline {
+  --color-asphalt: var(--daur-asphalt);
+  --color-bib: var(--daur-bib);
+  --color-chalk: var(--daur-chalk);
+  --color-sodium: var(--daur-sodium);
+  --color-sodium-ink: var(--daur-sodium-ink);
+  --color-signal: var(--daur-signal);
+  --color-signal-ink: var(--daur-signal-ink);
+
+  --color-surface: var(--daur-surface);
+  --color-surface-sunk: var(--daur-surface-sunk);
+  --color-surface-inverse: var(--daur-surface-inverse);
+  --color-border: var(--daur-border);
+  --color-text: var(--daur-text);
+  --color-text-muted: var(--daur-text-muted);
+  --color-text-inverse: var(--daur-text-inverse);
+  --color-accent: var(--daur-accent);
+  --color-accent-text: var(--daur-accent-text);
+
+  --font-display: var(--font-daur-display);
+  --font-sans: var(--font-daur-body);
+  --font-mono: var(--font-daur-mono);
+  --font-deva: var(--font-daur-deva);
+
+  --radius-token: var(--daur-radius);
+  --radius-bib: var(--daur-radius-bib);
+}
+
+/* The one outlier in the type scale: the bib numeral. */
+.bib-numeral {
+  font-family: var(--font-daur-display), system-ui, sans-serif;
+  font-variation-settings:
+    "wdth" 125,
+    "wght" 800;
+  font-size: clamp(3.25rem, 12vw, 5.5rem);
+  line-height: 0.82;
+  letter-spacing: -0.03em;
+  font-feature-settings: "tnum";
+}
+
+/* Small-caps eyebrow used for the event wordmark on bibs and the hero. */
+.eyebrow {
+  font-family: var(--font-daur-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* Dark zone. Scoped so it cannot leak into the form-heavy light UI. */
+.on-asphalt {
+  background-color: var(--daur-asphalt);
+  color: var(--daur-text-inverse);
+}
+
+/* Lane-marking divider — all that survives of the cut road-spine idea. */
+.lane-rule {
+  border: 0;
+  border-top: 1px dashed var(--daur-chalk);
+}
+
+/* Tabular figures wherever numbers must line up (times, splits, slots). */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Sodium-vapour light pooling in the dark hero. Representational, not
+ * decorative — it is the streetlight. Used exactly once, in the hero. */
+.sodium-glow {
+  background-image: radial-gradient(
+    62% 72% at 18% 0%,
+    color-mix(in oklab, var(--daur-sodium) 26%, transparent) 0%,
+    transparent 70%
+  );
+}
+
+/* The single orchestrated moment: a start-line stagger on page load. */
+@keyframes daur-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: daur-rise 400ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}

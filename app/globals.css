@@ -1,0 +1,15 @@
+@import "tailwindcss";
+@import "./styles/tokens.css";
+
+body {
+  background: var(--daur-surface);
+  color: var(--daur-text);
+  font-family: var(--font-daur-body), system-ui, sans-serif;
+}
+
+/* Visible keyboard focus everywhere — part of the quality floor. */
+:focus-visible {
+  outline: 2px solid var(--daur-sodium-ink);
+  outline-offset: 2px;
+  border-radius: 2px;
+}

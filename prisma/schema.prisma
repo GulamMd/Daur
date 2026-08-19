@@ -1,0 +1,13 @@
+// Daur — running event registration platform
+// Schema is built out in Phase 2; Phase 0 establishes the connection only.
+// Datasource URLs (pooled + direct) live in prisma.config.ts.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
