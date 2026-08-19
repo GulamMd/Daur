@@ -246,6 +246,11 @@ model Event {
   // so renaming an event never changes references already issued.
   refPrefix String?
 
+  // Lock-free per-event counter for registration references. Claimed with an
+  // atomic UPDATE ... RETURNING so concurrent checkouts receive disjoint
+  // blocks of numbers without serialising on a row lock.
+  registrationSeq Int @default(0)
+
   publishedAt DateTime? @db.Timestamptz(3)
 
   organizer     Organizer        @relation(fields: [organizerId], references: [id], onDelete: Restrict)
@@ -419,4 +424,6 @@ model Registration {
   @@index([userId, createdAt])
   @@index([eventId, categoryId])
   @@index([participantId])
+  // Idempotent replays look a checkout up by its group id.
+  @@index([groupId])
 }

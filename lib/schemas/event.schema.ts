@@ -39,6 +39,7 @@ export const SECTION_KEYS = [
   "venue",
   "faqs",
   "rules",
+  "organizer",
 ] as const;
 
 export const eventStatusSchema = z.enum([
@@ -69,8 +70,30 @@ const scheduleSchema = z.object({
   sortOrder: z.number().int().min(0).default(0),
 });
 
+// Mirrors INCLUSION_ICONS in components/event/inclusion-icon.tsx. Validating
+// here means an unknown icon name is caught when the document is authored,
+// not discovered as a blank square on the live page.
+export const INCLUSION_ICON_NAMES = [
+  "medal",
+  "shirt",
+  "droplet",
+  "water",
+  "cross",
+  "bag",
+  "coffee",
+  "food",
+  "clock",
+  "timer",
+  "map",
+  "music",
+  "camera",
+  "bus",
+  "shower",
+  "gift",
+] as const;
+
 const inclusionSchema = z.object({
-  icon: z.string().trim().min(1).max(40),
+  icon: z.enum(INCLUSION_ICON_NAMES),
   title: z.string().trim().min(1).max(80),
   description: z.string().max(300).nullable().optional(),
   sortOrder: z.number().int().min(0).default(0),

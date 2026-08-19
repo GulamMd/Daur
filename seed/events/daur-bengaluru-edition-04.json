@@ -2,14 +2,14 @@
   "slug": "daur-bengaluru-edition-04",
   "name": "Daur Bengaluru Edition 04",
   "tagline": "The city, closed.",
-  "status": "COMING_SOON",
+  "status": "REGISTRATION_OPEN",
   "refPrefix": "DBE",
 
   "startAt": "2026-09-13T05:00:00+05:30",
   "endAt": "2026-09-13T09:30:00+05:30",
   "timezone": "Asia/Kolkata",
 
-  "registrationOpensAt": "2026-08-22T10:00:00+05:30",
+  "registrationOpensAt": "2026-08-01T10:00:00+05:30",
   "registrationClosesAt": "2026-09-10T23:59:00+05:30",
 
   "venue": {
@@ -177,6 +177,7 @@
     "inclusions",
     "venue",
     "faqs",
-    "rules"
+    "rules",
+    "organizer"
   ]
 }
