@@ -1,0 +1,182 @@
+{
+  "slug": "daur-bengaluru-edition-04",
+  "name": "Daur Bengaluru Edition 04",
+  "tagline": "The city, closed.",
+  "status": "COMING_SOON",
+  "refPrefix": "DBE",
+
+  "startAt": "2026-09-13T05:00:00+05:30",
+  "endAt": "2026-09-13T09:30:00+05:30",
+  "timezone": "Asia/Kolkata",
+
+  "registrationOpensAt": "2026-08-22T10:00:00+05:30",
+  "registrationClosesAt": "2026-09-10T23:59:00+05:30",
+
+  "venue": {
+    "name": "Cubbon Park",
+    "addressLine": "Kasturba Road, Sampangi Rama Nagara",
+    "city": "Bengaluru",
+    "state": "Karnataka",
+    "pincode": "560001",
+    "lat": 12.9763,
+    "lng": 77.5929,
+    "mapsUrl": "https://maps.google.com/?q=Cubbon+Park+Bengaluru"
+  },
+
+  "termsVersion": "v1",
+
+  "aboutMd": "Bengaluru's roads carry traffic for eighteen hours a day. For three hours on the second Sunday of September, they carry runners instead.\n\nEdition 04 runs on fully closed roads from Cubbon Park, out along Kasturba Road and MG Road, and back before the city wakes up. Three distances, one start line, and the same crews that have shown up since the first edition.\n\nThis is a road race, not a fun run. Roads are marshalled, distances are measured, and cut-off times are enforced.",
+
+  "rulesMd": "- Bibs are personal. Running on someone else's entry means both entries are cancelled.\n- Minimum ages are checked against your date of birth on race day, not on the day you register.\n- Headphones are allowed on the 5K only. The 10K and 21K share live traffic junctions.\n- Cut-off is 3 hours from your category's flag-off. Roads reopen on schedule.\n- Entries are not transferable between people or between distances.",
+
+  "categories": [
+    {
+      "name": "5K",
+      "distanceMeters": 5000,
+      "minAge": 12,
+      "startTime": "2026-09-13T06:00:00+05:30",
+      "slotLimit": 400,
+      "sortOrder": 1,
+      "descriptionMd": "One loop of the park and back along Kasturba Road. Flat, marshalled, and the right distance for a first road race."
+    },
+    {
+      "name": "10K",
+      "distanceMeters": 10000,
+      "minAge": 16,
+      "startTime": "2026-09-13T05:30:00+05:30",
+      "slotLimit": 600,
+      "sortOrder": 2,
+      "descriptionMd": "Out through MG Road and Trinity Circle, back down Cubbon Road. Two live junctions, both marshalled."
+    },
+    {
+      "name": "21K",
+      "distanceMeters": 21097,
+      "minAge": 18,
+      "startTime": "2026-09-13T05:00:00+05:30",
+      "slotLimit": 300,
+      "sortOrder": 3,
+      "descriptionMd": "Two laps of the 10K route with the Richmond Road extension. The only category that finishes after sunrise."
+    }
+  ],
+
+  "schedule": [
+    {
+      "timeLabel": "04:15",
+      "title": "Gates open",
+      "description": "Bib collection closed — collect the day before.",
+      "sortOrder": 1
+    },
+    { "timeLabel": "04:40", "title": "21K reporting", "sortOrder": 2 },
+    { "timeLabel": "05:00", "title": "21K flag-off", "sortOrder": 3 },
+    { "timeLabel": "05:30", "title": "10K flag-off", "sortOrder": 4 },
+    { "timeLabel": "06:00", "title": "5K flag-off", "sortOrder": 5 },
+    { "timeLabel": "07:15", "title": "First 21K finishers", "sortOrder": 6 },
+    {
+      "timeLabel": "08:00",
+      "title": "Roads begin reopening",
+      "description": "Cut-off enforced from this point.",
+      "sortOrder": 7
+    },
+    { "timeLabel": "09:00", "title": "Prize giving", "sortOrder": 8 }
+  ],
+
+  "inclusions": [
+    {
+      "icon": "medal",
+      "title": "Finisher medal",
+      "description": "Every distance, on crossing the line.",
+      "sortOrder": 1
+    },
+    {
+      "icon": "shirt",
+      "title": "Race tee",
+      "description": "Collected with your bib the day before.",
+      "sortOrder": 2
+    },
+    {
+      "icon": "droplet",
+      "title": "Aid stations",
+      "description": "Every 2.5 km on the 10K and 21K.",
+      "sortOrder": 3
+    },
+    {
+      "icon": "cross",
+      "title": "Medical support",
+      "description": "Ambulance at the start and two points on course.",
+      "sortOrder": 4
+    },
+    {
+      "icon": "bag",
+      "title": "Baggage counter",
+      "description": "At the Cubbon Park bandstand.",
+      "sortOrder": 5
+    },
+    { "icon": "coffee", "title": "Post-run refreshments", "sortOrder": 6 }
+  ],
+
+  "routes": [
+    {
+      "categoryName": "10K",
+      "descriptionMd": "Cubbon Park → Kasturba Road → MG Road → Trinity Circle → Cubbon Road → back. Two live junctions at Trinity and Anil Kumble Circle, both marshalled and coned.",
+      "elevationGainM": 48
+    },
+    {
+      "categoryName": "21K",
+      "descriptionMd": "Two laps of the 10K route with the Richmond Road extension on lap one. Gentle drag from Richmond Circle back to Kasturba Road on each lap.",
+      "elevationGainM": 112
+    },
+    {
+      "categoryName": "5K",
+      "descriptionMd": "One park loop then out and back along Kasturba Road. No live traffic at any point.",
+      "elevationGainM": 18
+    }
+  ],
+
+  "faqs": [
+    {
+      "question": "When do I collect my bib?",
+      "answer": "Saturday 12 September, 11:00 to 19:00, at the Cubbon Park bandstand. There is no bib collection on race morning — the roads close before the counter could open.",
+      "sortOrder": 1
+    },
+    {
+      "question": "Can I register someone else?",
+      "answer": "Yes. One account can register several people — family, friends, your whole crew. Add each person once and they stay on your account for future editions.",
+      "sortOrder": 2
+    },
+    {
+      "question": "Can one person enter two distances?",
+      "answer": "No. Each person enters one distance per edition. If you need to change distance, contact us before registration closes.",
+      "sortOrder": 3
+    },
+    {
+      "question": "How is the minimum age checked?",
+      "answer": "Against your date of birth on race day, 13 September 2026 — not the day you register. Someone who turns 16 on 12 September is eligible for the 10K.",
+      "sortOrder": 4
+    },
+    {
+      "question": "What happens if it rains?",
+      "answer": "The race runs. It is only called off if the police withdraw the road closure, and that decision is posted here and on Instagram by 20:00 the evening before.",
+      "sortOrder": 5
+    },
+    {
+      "question": "Is there parking?",
+      "answer": "Not at the start. Roads within 500 m are closed from 03:30. Use the Cubbon Park or Vidhana Soudha metro stations — the first train is before the 5K flag-off.",
+      "sortOrder": 6
+    }
+  ],
+
+  "gallery": [],
+
+  "sections": [
+    "hero",
+    "facts",
+    "categories",
+    "about",
+    "route",
+    "schedule",
+    "inclusions",
+    "venue",
+    "faqs",
+    "rules"
+  ]
+}

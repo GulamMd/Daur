@@ -1,0 +1,94 @@
+import { prisma } from "@/server/db";
+import { EventStatus } from "@/generated/prisma/enums";
+
+/**
+ * Public read side. Server Components call these directly — no HTTP hop — so
+ * DRAFT filtering has to live here rather than in a route handler that a page
+ * might bypass.
+ */
+
+const PUBLIC_STATUSES = [
+  EventStatus.COMING_SOON,
+  EventStatus.REGISTRATION_OPEN,
+  EventStatus.REGISTRATION_CLOSED,
+  EventStatus.COMPLETED,
+  EventStatus.CANCELLED,
+];
+
+const CARD_FIELDS = {
+  id: true,
+  slug: true,
+  name: true,
+  tagline: true,
+  status: true,
+  startAt: true,
+  timezone: true,
+  venueName: true,
+  city: true,
+  coverImageUrl: true,
+  registrationOpensAt: true,
+  registrationClosesAt: true,
+  categories: {
+    select: {
+      name: true,
+      distanceMeters: true,
+      slotLimit: true,
+      slotsTaken: true,
+      sortOrder: true,
+    },
+    orderBy: { sortOrder: "asc" },
+  },
+} as const;
+
+export async function listEvents(filter: "upcoming" | "past" = "upcoming", now = new Date()) {
+  return prisma.event.findMany({
+    where: {
+      status: { in: PUBLIC_STATUSES },
+      startAt: filter === "upcoming" ? { gte: now } : { lt: now },
+    },
+    orderBy: { startAt: filter === "upcoming" ? "asc" : "desc" },
+    select: CARD_FIELDS,
+  });
+}
+
+/** Full event page payload. Returns null for unknown or DRAFT slugs. */
+export async function getEventBySlug(slug: string) {
+  return prisma.event.findFirst({
+    where: { slug, status: { in: PUBLIC_STATUSES } },
+    include: {
+      organizer: {
+        select: {
+          name: true,
+          logoUrl: true,
+          aboutMd: true,
+          contactEmail: true,
+          instagramUrl: true,
+        },
+      },
+      categories: { orderBy: { sortOrder: "asc" } },
+      schedule: { orderBy: { sortOrder: "asc" } },
+      inclusions: { orderBy: { sortOrder: "asc" } },
+      images: { orderBy: { sortOrder: "asc" } },
+      faqs: { orderBy: { sortOrder: "asc" } },
+      routes: { include: { category: { select: { name: true } } } },
+    },
+  });
+}
+
+/** Includes DRAFT — organizer tooling only, never a public page. */
+export async function getEventBySlugForOrganizer(slug: string) {
+  return prisma.event.findUnique({
+    where: { slug },
+    include: {
+      categories: { orderBy: { sortOrder: "asc" } },
+      schedule: { orderBy: { sortOrder: "asc" } },
+      inclusions: { orderBy: { sortOrder: "asc" } },
+      images: { orderBy: { sortOrder: "asc" } },
+      faqs: { orderBy: { sortOrder: "asc" } },
+      routes: true,
+    },
+  });
+}
+
+export type EventCard = Awaited<ReturnType<typeof listEvents>>[number];
+export type EventDetail = NonNullable<Awaited<ReturnType<typeof getEventBySlug>>>;

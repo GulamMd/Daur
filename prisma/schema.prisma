@@ -1,8 +1,10 @@
 // Daur — running event registration platform
 // Datasource URLs (pooled + direct) live in prisma.config.ts.
 //
-// Phase 1 adds identity only. Phase 2 adds Organizer, Participant, Event,
-// RaceCategory, Registration and the rest of the domain.
+// Timestamps are timestamptz throughout. Prisma's default DateTime maps to
+// `timestamp without time zone`, which is fine while everything goes through
+// Prisma but loses the offset for anyone querying SQL directly. A race that
+// flags off at 05:00 IST cannot afford that ambiguity.
 
 generator client {
   provider = "prisma-client"
@@ -14,6 +16,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ---------------------------------------------------------------------------
+// Identity
+// ---------------------------------------------------------------------------
+
 enum UserRole {
   USER
   ORGANIZER_ADMIN
@@ -23,11 +29,9 @@ model User {
   id String @id @default(cuid())
 
   // Auth.js requires these exact field names/types on the adapter's User model.
-  // `name` and `emailVerified` are nullable because an OAuth profile may omit
-  // them; the app layer enforces a name for credentials signups.
   name          String?
   email         String    @unique
-  emailVerified DateTime?
+  emailVerified DateTime? @db.Timestamptz(3)
   image         String?
 
   // Emails are normalised to lowercase in lib/schemas/auth.schema.ts rather
@@ -36,12 +40,15 @@ model User {
   phone        String?
   role         UserRole @default(USER)
 
-  accounts            Account[]
-  sessions            Session[]
-  passwordResetTokens PasswordResetToken[]
+  accounts             Account[]
+  sessions             Session[]
+  passwordResetTokens  PasswordResetToken[]
+  participants         Participant[]
+  registrations        Registration[]
+  organizerMemberships OrganizerMember[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 }
 
 model Account {
@@ -59,26 +66,25 @@ model Account {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   @@id([provider, providerAccountId])
   @@index([userId])
 }
 
-// Retained for adapter completeness. The session strategy is JWT (required when
-// mixing Credentials with a database adapter), so this table stays empty until
-// we ever switch strategies.
+// Retained for adapter completeness. The session strategy is JWT, so this
+// table stays empty unless we ever switch strategies.
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
   userId       String
-  expires      DateTime
+  expires      DateTime @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   @@index([userId])
 }
@@ -86,7 +92,7 @@ model Session {
 model VerificationToken {
   identifier String
   token      String
-  expires    DateTime
+  expires    DateTime @db.Timestamptz(3)
 
   @@id([identifier, token])
 }
@@ -95,15 +101,322 @@ model PasswordResetToken {
   id String @id @default(cuid())
 
   userId    String
-  // The raw token is emailed; only its SHA-256 hash is stored, so a database
-  // leak does not hand out working reset links.
+  // Only the SHA-256 hash of the emailed token is stored, so a database leak
+  // does not hand out working reset links.
   tokenHash String    @unique
-  expiresAt DateTime
-  usedAt    DateTime?
+  expiresAt DateTime  @db.Timestamptz(3)
+  usedAt    DateTime? @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
 
   @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Organizer — one row for now, but multi-organizer costs nothing later because
+// every event already hangs off organizerId and membership is its own table.
+// ---------------------------------------------------------------------------
+
+enum OrgRole {
+  OWNER
+  ADMIN
+}
+
+model Organizer {
+  id           String  @id @default(cuid())
+  name         String
+  slug         String  @unique
+  logoUrl      String?
+  aboutMd      String?
+  contactEmail String
+  contactPhone String?
+  instagramUrl String?
+
+  events  Event[]
+  members OrganizerMember[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}
+
+model OrganizerMember {
+  id String @id @default(cuid())
+
+  organizerId String
+  userId      String
+  role        OrgRole @default(ADMIN)
+
+  organizer Organizer @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([organizerId, userId])
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// People
+// ---------------------------------------------------------------------------
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  UNDISCLOSED
+}
+
+model Participant {
+  id String @id @default(cuid())
+
+  userId      String // the account that manages this person
+  fullName    String
+  dateOfBirth DateTime @db.Date // no time, no timezone — a birthday is a date
+  gender      Gender
+  phone       String
+  email       String?
+
+  isSelf Boolean @default(false) // the account holder's own record
+
+  // Soft delete: registrations reference this row and must stay accurate.
+  deletedAt DateTime? @db.Timestamptz(3)
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  registrations Registration[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Events
+// ---------------------------------------------------------------------------
+
+enum EventStatus {
+  DRAFT
+  COMING_SOON
+  REGISTRATION_OPEN
+  REGISTRATION_CLOSED
+  COMPLETED
+  CANCELLED
+}
+
+model Event {
+  id          String @id @default(cuid())
+  organizerId String
+
+  slug    String  @unique
+  name    String
+  tagline String?
+
+  status EventStatus @default(DRAFT)
+
+  startAt  DateTime  @db.Timestamptz(3)
+  endAt    DateTime? @db.Timestamptz(3)
+  timezone String    @default("Asia/Kolkata")
+
+  venueName   String
+  addressLine String
+  city        String
+  state       String?
+  pincode     String?
+  lat         Float?
+  lng         Float?
+  mapsUrl     String?
+
+  coverImageUrl String?
+  ogImageUrl    String?
+
+  registrationOpensAt  DateTime? @db.Timestamptz(3)
+  registrationClosesAt DateTime? @db.Timestamptz(3)
+
+  aboutMd String?
+  rulesMd String?
+
+  // Ordered section keys, so re-ordering an event page is data not code.
+  sections Json
+
+  termsVersion String @default("v1")
+
+  // Prefix for registration references (DBE26-0042). Stored rather than derived
+  // so renaming an event never changes references already issued.
+  refPrefix String?
+
+  publishedAt DateTime? @db.Timestamptz(3)
+
+  organizer     Organizer        @relation(fields: [organizerId], references: [id], onDelete: Restrict)
+  categories    RaceCategory[]
+  schedule      EventSchedule[]
+  inclusions    EventInclusion[]
+  images        EventImage[]
+  routes        EventRoute[]
+  faqs          EventFaq[]
+  registrations Registration[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([status, startAt])
+  @@index([organizerId])
+}
+
+model RaceCategory {
+  id      String @id @default(cuid())
+  eventId String
+
+  name           String // "5K"
+  distanceMeters Int
+  minAge         Int? // minimum only — no maximum, per the brief
+  startTime      DateTime @db.Timestamptz(3)
+
+  slotLimit  Int
+  // Denormalised counter. Claimed with a conditional UPDATE rather than
+  // read-then-write, and backed by a CHECK constraint so it cannot oversell.
+  slotsTaken Int @default(0)
+
+  descriptionMd String?
+
+  // Forward hook so payments land without a migration.
+  priceMinor Int    @default(0)
+  currency   String @default("INR")
+
+  sortOrder Int @default(0)
+
+  event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  routes        EventRoute[]
+  registrations Registration[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([eventId, name])
+  @@index([eventId])
+}
+
+model EventSchedule {
+  id          String  @id @default(cuid())
+  eventId     String
+  timeLabel   String // "04:30 AM" — display text, not a timestamp
+  title       String
+  description String?
+  sortOrder   Int     @default(0)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+model EventInclusion {
+  id          String  @id @default(cuid())
+  eventId     String
+  icon        String
+  title       String
+  description String?
+  sortOrder   Int     @default(0)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+enum EventImageKind {
+  COVER
+  GALLERY
+  ROUTE_MAP
+}
+
+model EventImage {
+  id        String         @id @default(cuid())
+  eventId   String
+  url       String
+  alt       String
+  kind      EventImageKind @default(GALLERY)
+  sortOrder Int            @default(0)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+model EventRoute {
+  id         String  @id @default(cuid())
+  eventId    String
+  categoryId String? // null = applies to the whole event
+
+  mapImageUrl    String?
+  gpxUrl         String?
+  descriptionMd  String?
+  elevationGainM Int?
+
+  event    Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  category RaceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([categoryId])
+}
+
+model EventFaq {
+  id        String @id @default(cuid())
+  eventId   String
+  question  String
+  answer    String
+  sortOrder Int    @default(0)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+// ---------------------------------------------------------------------------
+// Registration
+// ---------------------------------------------------------------------------
+
+enum RegistrationStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+model Registration {
+  id String @id @default(cuid())
+
+  ref     String // DMR26-0042
+  groupId String // ties one checkout's N rows together
+
+  eventId       String
+  categoryId    String
+  participantId String
+  userId        String // denormalised owner — fast "my registrations"
+
+  status RegistrationStatus @default(CONFIRMED)
+
+  // Frozen copy of the participant as submitted. If someone later fixes a
+  // spelling, the historic entry still shows what was actually registered.
+  participantSnapshot Json
+  ageAtEvent          Int
+
+  acceptedTermsAt DateTime @db.Timestamptz(3)
+  termsVersion    String
+
+  cancelledAt     DateTime? @db.Timestamptz(3)
+  cancelledReason String?
+
+  event       Event        @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  category    RaceCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  participant Participant  @relation(fields: [participantId], references: [id], onDelete: Restrict)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  // NOTE: the one-registration-per-event rule is a PARTIAL unique index
+  // (WHERE status = 'CONFIRMED'), which Prisma cannot express. It lives in
+  // raw SQL in the migration. A plain @@unique here would be wrong — it would
+  // block re-registering after a cancellation.
+  @@unique([ref])
+  @@index([userId, createdAt])
+  @@index([eventId, categoryId])
+  @@index([participantId])
 }
