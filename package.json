@@ -22,7 +22,8 @@
     "check:db": "tsx scripts/check-db-constraints.ts",
     "verify": "npm run type-check && npm run lint && npm run check:design && npm run check:contrast && npm run test",
     "seed:events": "tsx scripts/seed-events.ts",
-    "event:status": "tsx scripts/event-status.ts"
+    "event:status": "tsx scripts/event-status.ts",
+    "smoke": "tsx scripts/smoke.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",

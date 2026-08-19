@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, IBM_Plex_Sans, IBM_Plex_Sans_Devanagari, IBM_Plex_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { siteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 // Rationale for each face: docs/design-direction.md
@@ -32,7 +33,8 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  // Absolute OG image URLs depend on this being the real domain in production.
+  metadataBase: new URL(siteUrl()),
   title: {
     default: "Daur",
     template: "%s · Daur",
