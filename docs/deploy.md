@@ -11,20 +11,34 @@ Set these in **Vercel → Settings → Environment Variables**. Everything excep
 `NEXT_PUBLIC_SITE_URL` should be identical across Production and Preview unless
 you deliberately want a separate preview database.
 
-| Variable                | Where it comes from                    | Notes                                                                             |
-| ----------------------- | -------------------------------------- | --------------------------------------------------------------------------------- |
-| `DATABASE_URL`          | Neon → Connection Details → **Pooled** | Host contains `-pooler`. Used by the app at runtime.                              |
-| `DIRECT_URL`            | Neon → Connection Details → **Direct** | Host has **no** `-pooler`. Used by migrations, which cannot run through a pooler. |
-| `AUTH_SECRET`           | `npx auth secret`                      | Generate a fresh one for production; do not reuse the local value.                |
-| `AUTH_GOOGLE_ID`        | Google Cloud Console                   | See §2.                                                                           |
-| `AUTH_GOOGLE_SECRET`    | Google Cloud Console                   | See §2.                                                                           |
-| `NEXT_PUBLIC_SITE_URL`  | Your production domain                 | e.g. `https://daur.run`. **No trailing slash.**                                   |
-| `ORGANIZER_ADMIN_EMAIL` | optional                               | Promotes that account to `ORGANIZER_ADMIN` on the next seed run.                  |
+| Variable                | Where it comes from                     | Notes                                                                                                                                  |
+| ----------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`          | Neon → Connection Details → **Pooled**  | Host contains `-pooler`. Used by the app at runtime.                                                                                   |
+| `DIRECT_URL`            | Neon → Connection Details → **Direct**  | Host has **no** `-pooler`. Used by migrations, which cannot run through a pooler.                                                      |
+| `AUTH_SECRET`           | `npx auth secret`                       | Generate a fresh one for production; do not reuse the local value.                                                                     |
+| `AUTH_GOOGLE_ID`        | Google Cloud Console                    | See §2.                                                                                                                                |
+| `AUTH_GOOGLE_SECRET`    | Google Cloud Console                    | See §2.                                                                                                                                |
+| `NEXT_PUBLIC_SITE_URL`  | **optional** — only for a custom domain | Leave unset on `*.vercel.app`; the code uses Vercel's stable production domain. Set it (no trailing slash) when a real domain arrives. |
+| `ORGANIZER_ADMIN_EMAIL` | optional                                | Promotes that account to `ORGANIZER_ADMIN` on the next seed run.                                                                       |
 
-`NEXT_PUBLIC_SITE_URL` is not cosmetic: it produces the absolute `og:image` URL.
-If it is missing, `lib/site-url.ts` falls back to `VERCEL_URL`, which changes on
-every deploy — every link ever shared on Instagram would point at a dead
-preview host. Set it before announcing anything.
+### About the site URL
+
+This drives absolute `og:image` URLs, canonical tags and the sitemap, so it has
+to be the address people actually share.
+
+You do **not** need to set anything to deploy on a free `*.vercel.app` domain.
+`lib/site-url.ts` resolves it in this order:
+
+1. `NEXT_PUBLIC_SITE_URL` — an explicit override, for a custom domain
+2. `VERCEL_PROJECT_PRODUCTION_URL` on production — e.g. `daur.vercel.app`, the
+   project's **stable** domain
+3. `VERCEL_URL` on previews — the per-deployment hostname, so a preview links
+   to itself
+4. `http://localhost:3000`
+
+The distinction in 2 vs 3 matters. `VERCEL_URL` is deployment-specific
+(`daur-k3n8x2-gulam.vercel.app`) and changes every time you ship — using it in
+production would mean every previously shared link points at a dead host.
 
 ---
 
@@ -38,8 +52,11 @@ own entry, and they must match exactly:
 
 ```
 http://localhost:3000/api/auth/callback/google
-https://<your-domain>/api/auth/callback/google
+https://<project>.vercel.app/api/auth/callback/google
 ```
+
+A `*.vercel.app` address is perfectly acceptable to Google — no custom domain
+is required. Use the stable project domain, not a deployment-specific one.
 
 Preview deployments get a new hostname each time, so Google logins will fail on
 previews unless you add a stable preview domain and register that too. Email and
@@ -98,8 +115,8 @@ against production.
 
 ## 5. Going live checklist
 
-- [ ] `NEXT_PUBLIC_SITE_URL` is the real domain
-- [ ] Google redirect URI registered for that domain
+- [ ] Google redirect URI registered for `https://<project>.vercel.app`
+- [ ] `NEXT_PUBLIC_SITE_URL` set **only if** you have a custom domain
 - [ ] `npm run smoke -- https://<domain>` passes, especially the `og:image`
       checks — paste an event URL into WhatsApp and confirm the card renders
 - [ ] **Real terms and waiver text is in `app/(public)/terms/page.tsx`** — it
