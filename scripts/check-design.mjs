@@ -6,10 +6,15 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, sep } from "node:path";
 
 const ROOTS = ["app", "components", "lib", "server"];
-// tokens.css is the design system. google-mark.tsx is a third-party brand asset
-// whose colours are mandated by Google and cannot be tokenised. Keep this list
-// at exactly these two entries.
-const ALLOWED = ["app/styles/tokens.css", "components/ui/google-mark.tsx"];
+// Three exceptions, each for a reason that cannot be designed away:
+//
+//   tokens.css        the design system itself
+//   google-mark.tsx   third-party brand asset; Google mandates these exact colours
+//   global-error.tsx  renders when the ROOT LAYOUT failed, so globals.css was
+//                     never loaded and no custom property resolves
+//
+// Do not add a fourth without one of equal weight.
+const ALLOWED = ["app/styles/tokens.css", "components/ui/google-mark.tsx", "app/global-error.tsx"];
 const HEX = /#[0-9a-fA-F]{3,8}\b/;
 
 function toPosix(p) {

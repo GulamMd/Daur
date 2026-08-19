@@ -47,8 +47,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${display.variable} ${body.variable} ${devanagari.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="bg-surface text-text flex min-h-full flex-col">
+        {/* First tabbable element: lets keyboard and screen-reader users jump
+            past the header instead of tabbing through it on every page. */}
+        <a
+          href="#main"
+          className="bg-accent text-accent-text rounded-token sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:text-sm focus:font-medium"
+        >
+          Skip to content
+        </a>
         <SiteHeader />
-        <main className="flex-1">{children}</main>
+        <main id="main" tabIndex={-1} className="flex-1">
+          {children}
+        </main>
         <SiteFooter />
       </body>
     </html>

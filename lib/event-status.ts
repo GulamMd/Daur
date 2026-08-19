@@ -1,4 +1,5 @@
 import { EventStatus } from "@/generated/prisma/enums";
+import { formatDayAndMonth } from "@/lib/format";
 
 export type StatusInput = {
   status: EventStatus;
@@ -42,7 +43,7 @@ export function ctaLabel(event: StatusInput, now = new Date()): string {
       return "Register";
     case EventStatus.COMING_SOON:
       return event.registrationOpensAt
-        ? `Registration opens ${formatShortDate(event.registrationOpensAt)}`
+        ? `Registration opens ${formatDayAndMonth(event.registrationOpensAt)}`
         : "Registration opens soon";
     case EventStatus.REGISTRATION_CLOSED:
       return "Registration closed";
@@ -53,10 +54,4 @@ export function ctaLabel(event: StatusInput, now = new Date()): string {
     default:
       return "Registration closed";
   }
-}
-
-function formatShortDate(date: Date, timeZone = "Asia/Kolkata"): string {
-  return new Intl.DateTimeFormat("en-IN", { timeZone, day: "numeric", month: "short" }).format(
-    date,
-  );
 }

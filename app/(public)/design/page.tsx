@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Visual direction" };
+// Internal proof sheet from Phase 0.5, superseded by the real event page.
+// Kept for reference but kept out of search results.
+export const metadata: Metadata = { title: "Visual direction", robots: { index: false } };
 
 // Temporary Phase 0.5 proof sheet. Delete once Phase 4 builds the real event
 // page — this exists so the direction can be reviewed before components land.

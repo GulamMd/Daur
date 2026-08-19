@@ -31,7 +31,12 @@ export function deriveRefPrefix(eventName: string): string {
   const trimmed = initials.slice(0, 5);
   if (trimmed.length >= 2) return trimmed;
 
-  // Degenerate names (single short word, or none) fall back to padded letters.
+  // A single-word name ("Daur") yields one initial, which is not a valid
+  // prefix. Take the first letters of the word itself rather than padding with
+  // filler — "DAU" reads like a race code, "DX" reads like a placeholder.
+  const firstWord = eventName.replace(/[^A-Za-z]/g, "");
+  if (firstWord.length >= 2) return firstWord.slice(0, 3).toUpperCase();
+
   return (trimmed + "XX").slice(0, 2);
 }
 

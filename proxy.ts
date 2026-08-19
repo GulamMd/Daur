@@ -1,6 +1,9 @@
 import NextAuth from "next-auth";
 import { authConfig } from "@/server/auth.config";
 
+// Next 16 renamed the `middleware` convention to `proxy`; the signature and
+// the matcher config are unchanged.
+//
 // Built from the edge-safe config only — no Prisma, no argon2.
 const { auth } = NextAuth(authConfig);
 

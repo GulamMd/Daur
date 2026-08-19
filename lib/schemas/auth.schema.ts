@@ -7,10 +7,14 @@ import { z } from "zod";
 
 // Stored lowercase so the @unique index on User.email is genuinely case-safe
 // without needing the citext extension.
+// Trim and lowercase BEFORE validating. Zod applies transforms after checks,
+// so validating first rejects "  a@b.com " outright — and a trailing space
+// from a phone keyboard or autofill is extremely common.
 export const emailSchema = z
-  .email({ message: "Enter a valid email address." })
+  .string()
   .trim()
-  .toLowerCase();
+  .toLowerCase()
+  .pipe(z.email({ message: "Enter a valid email address." }));
 
 export const passwordSchema = z
   .string()

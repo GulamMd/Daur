@@ -24,7 +24,13 @@ const MAX_AGE_YEARS = 120;
 export const dateOfBirthSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Use the date picker.")
-  .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00Z`)), "That is not a real date.")
+  .refine((value) => {
+    // Date.parse happily rolls 2010-02-30 forward to 2 March. Round-tripping
+    // catches that, so a typo is rejected instead of silently becoming a
+    // different birthday — which would then compute the wrong race-day age.
+    const parsed = new Date(`${value}T00:00:00Z`);
+    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+  }, "That date does not exist.")
   .refine((value) => {
     // Guard against typos like 2206 instead of 1996 — a future birth date is
     // always wrong, and so is one implying an impossible age.

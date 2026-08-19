@@ -3,7 +3,7 @@ import { prisma } from "@/server/db";
 import { canRegister } from "@/lib/event-status";
 import { ageOnEventDate } from "@/lib/age";
 import { formatRegistrationRef, deriveRefPrefix } from "@/lib/refs";
-import { toDateOnly, type ParticipantInput } from "@/lib/schemas/participant.schema";
+import { toDateOnly } from "@/lib/schemas/participant.schema";
 import type { RegistrationRequest } from "@/lib/schemas/registration.schema";
 
 /**
