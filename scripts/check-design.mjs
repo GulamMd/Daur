@@ -6,7 +6,10 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, sep } from "node:path";
 
 const ROOTS = ["app", "components", "lib", "server"];
-const ALLOWED = ["app/styles/tokens.css"];
+// tokens.css is the design system. google-mark.tsx is a third-party brand asset
+// whose colours are mandated by Google and cannot be tokenised. Keep this list
+// at exactly these two entries.
+const ALLOWED = ["app/styles/tokens.css", "components/ui/google-mark.tsx"];
 const HEX = /#[0-9a-fA-F]{3,8}\b/;
 
 function toPosix(p) {

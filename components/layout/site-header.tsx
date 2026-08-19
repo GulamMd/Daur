@@ -1,10 +1,10 @@
 import Link from "next/link";
+import { auth } from "@/server/auth";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
-/**
- * Structural shell. The authenticated variant (avatar + dropdown) arrives in
- * Phase 1; the event page's sticky CTA bar arrives in Phase 4.
- */
-export function SiteHeader() {
+export async function SiteHeader() {
+  const session = await auth();
+
   return (
     <header className="border-border bg-surface sticky top-0 z-40 border-b">
       <nav
@@ -17,17 +17,34 @@ export function SiteHeader() {
             दौड़
           </span>
         </Link>
-        <ul className="flex items-center gap-6 text-sm">
+
+        <ul className="flex items-center gap-5 text-sm">
           <li>
             <Link href="/events" className="text-text-muted hover:text-text transition-colors">
               Events
             </Link>
           </li>
-          <li>
-            <Link href="/login" className="text-text-muted hover:text-text transition-colors">
-              Log in
-            </Link>
-          </li>
+          {session?.user ? (
+            <>
+              <li>
+                <Link
+                  href="/account/registrations"
+                  className="text-text-muted hover:text-text transition-colors"
+                >
+                  Account
+                </Link>
+              </li>
+              <li>
+                <SignOutButton />
+              </li>
+            </>
+          ) : (
+            <li>
+              <Link href="/login" className="text-text-muted hover:text-text transition-colors">
+                Log in
+              </Link>
+            </li>
+          )}
         </ul>
       </nav>
     </header>

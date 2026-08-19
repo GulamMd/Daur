@@ -1,6 +1,8 @@
 // Daur — running event registration platform
-// Schema is built out in Phase 2; Phase 0 establishes the connection only.
 // Datasource URLs (pooled + direct) live in prisma.config.ts.
+//
+// Phase 1 adds identity only. Phase 2 adds Organizer, Participant, Event,
+// RaceCategory, Registration and the rest of the domain.
 
 generator client {
   provider = "prisma-client"
@@ -10,4 +12,98 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ORGANIZER_ADMIN
+}
+
+model User {
+  id String @id @default(cuid())
+
+  // Auth.js requires these exact field names/types on the adapter's User model.
+  // `name` and `emailVerified` are nullable because an OAuth profile may omit
+  // them; the app layer enforces a name for credentials signups.
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+
+  // Emails are normalised to lowercase in lib/schemas/auth.schema.ts rather
+  // than relying on a citext extension, so @unique is genuinely case-safe.
+  passwordHash String? // null for Google-only accounts
+  phone        String?
+  role         UserRole @default(USER)
+
+  accounts            Account[]
+  sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([provider, providerAccountId])
+  @@index([userId])
+}
+
+// Retained for adapter completeness. The session strategy is JWT (required when
+// mixing Credentials with a database adapter), so this table stays empty until
+// we ever switch strategies.
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model PasswordResetToken {
+  id String @id @default(cuid())
+
+  userId    String
+  // The raw token is emailed; only its SHA-256 hash is stored, so a database
+  // leak does not hand out working reset links.
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
