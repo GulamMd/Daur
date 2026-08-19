@@ -344,18 +344,76 @@ export async function cancelRegistration(registrationId: string, reason?: string
 
 // --- read side ------------------------------------------------------------
 
-export async function listRegistrationsForUser(userId: string) {
-  return prisma.registration.findMany({
-    where: { userId },
-    orderBy: [{ event: { startAt: "desc" } }, { ref: "asc" }],
+/**
+ * History always renders the frozen `participantSnapshot`, never the live
+ * participant row. If someone corrects a spelling next year, the entry still
+ * shows what was actually submitted — which is what was printed on the bib and
+ * what the organizer's start list says.
+ */
+export type RegistrationSnapshot = {
+  fullName: string;
+  dateOfBirth: string;
+  gender: string;
+  phone: string;
+  email: string | null;
+};
+
+const HISTORY_SELECT = {
+  id: true,
+  ref: true,
+  groupId: true,
+  status: true,
+  ageAtEvent: true,
+  createdAt: true,
+  participantSnapshot: true,
+  category: { select: { name: true, startTime: true } },
+  event: {
     select: {
-      id: true,
-      ref: true,
-      status: true,
-      ageAtEvent: true,
-      createdAt: true,
-      participant: { select: { fullName: true } },
-      category: { select: { name: true, startTime: true } },
+      slug: true,
+      name: true,
+      startAt: true,
+      timezone: true,
+      venueName: true,
+      city: true,
+    },
+  },
+} as const;
+
+export async function listRegistrationsForUser(
+  userId: string,
+  filter: "upcoming" | "past" = "upcoming",
+  now = new Date(),
+) {
+  return prisma.registration.findMany({
+    where: {
+      userId,
+      event: { startAt: filter === "upcoming" ? { gte: now } : { lt: now } },
+    },
+    // Soonest first when looking forward, most recent first when looking back.
+    orderBy: [{ event: { startAt: filter === "upcoming" ? "asc" : "desc" } }, { ref: "asc" }],
+    select: HISTORY_SELECT,
+  });
+}
+
+export async function countRegistrations(userId: string, now = new Date()) {
+  const [upcoming, past] = await Promise.all([
+    prisma.registration.count({ where: { userId, event: { startAt: { gte: now } } } }),
+    prisma.registration.count({ where: { userId, event: { startAt: { lt: now } } } }),
+  ]);
+  return { upcoming, past };
+}
+
+/** Scoped by userId, so another account's registration id simply is not found. */
+export async function getRegistrationDetail(userId: string, id: string) {
+  return prisma.registration.findFirst({
+    where: { id, userId },
+    select: {
+      ...HISTORY_SELECT,
+      termsVersion: true,
+      acceptedTermsAt: true,
+      cancelledAt: true,
+      cancelledReason: true,
+      category: { select: { name: true, startTime: true, minAge: true, distanceMeters: true } },
       event: {
         select: {
           slug: true,
@@ -363,7 +421,12 @@ export async function listRegistrationsForUser(userId: string) {
           startAt: true,
           timezone: true,
           venueName: true,
+          addressLine: true,
           city: true,
+          state: true,
+          pincode: true,
+          mapsUrl: true,
+          organizer: { select: { name: true, contactEmail: true, contactPhone: true } },
         },
       },
     },
@@ -395,3 +458,6 @@ export async function getRegistrationGroup(userId: string, groupId: string) {
     },
   });
 }
+
+export type RegistrationHistoryItem = Awaited<ReturnType<typeof listRegistrationsForUser>>[number];
+export type RegistrationDetail = NonNullable<Awaited<ReturnType<typeof getRegistrationDetail>>>;
