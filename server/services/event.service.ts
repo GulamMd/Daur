@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "@/server/db";
 import { EventStatus } from "@/generated/prisma/enums";
 
@@ -51,8 +52,26 @@ export async function listEvents(filter: "upcoming" | "past" = "upcoming", now =
   });
 }
 
-/** Full event page payload. Returns null for unknown or DRAFT slugs. */
-export async function getEventBySlug(slug: string) {
+/**
+ * Slugs only, for generateStaticParams. Deliberately not listEvents() — that
+ * pulls a full card payload per event, and prerendering only needs the URL.
+ * Unfiltered by date: past editions stay linkable.
+ */
+export async function listPublicSlugs() {
+  return prisma.event.findMany({
+    where: { status: { in: PUBLIC_STATUSES } },
+    select: { slug: true },
+  });
+}
+
+/**
+ * Full event page payload. Returns null for unknown or DRAFT slugs.
+ *
+ * Wrapped in React's cache() because the event page asks for this twice per
+ * render — once in generateMetadata, once in the page body — and it is eight
+ * relation loads each time. The wrapper dedupes within a single render pass.
+ */
+export const getEventBySlug = cache(async (slug: string) => {
   return prisma.event.findFirst({
     where: { slug, status: { in: PUBLIC_STATUSES } },
     include: {
@@ -73,7 +92,7 @@ export async function getEventBySlug(slug: string) {
       routes: { include: { category: { select: { name: true } } } },
     },
   });
-}
+});
 
 /** Includes DRAFT — organizer tooling only, never a public page. */
 export async function getEventBySlugForOrganizer(slug: string) {

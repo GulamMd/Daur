@@ -3,6 +3,7 @@ import { requireOrganizer } from "@/server/auth-guards";
 import { eventStatusUpdateSchema } from "@/lib/schemas/event.schema";
 import { setEventStatus, EventNotFoundError } from "@/server/services/organizer.service";
 import { prisma } from "@/server/db";
+import { revalidatePublicEvent } from "@/server/revalidate";
 
 export async function PATCH(
   request: Request,
@@ -27,6 +28,7 @@ export async function PATCH(
 
   try {
     const updated = await setEventStatus(slug, parsed.data.status);
+    revalidatePublicEvent(slug);
     return NextResponse.json(updated);
   } catch (error) {
     if (error instanceof EventNotFoundError) {

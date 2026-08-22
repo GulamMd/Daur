@@ -77,10 +77,17 @@ password sign-in works on previews regardless.
 ### What the build does
 
 ```
-npm install          → postinstall → prisma generate
+npm install           → postinstall → prisma generate
+prisma generate       → again, unconditionally (see below)
 prisma migrate deploy → applies pending migrations over DIRECT_URL
 next build            → compiles
 ```
+
+`prisma generate` runs in the build script as well as in `postinstall`. It is
+not redundant: `/generated` is gitignored, and when the platform restores a
+cached `node_modules` npm can skip `postinstall` entirely, leaving no client for
+`next build` to compile against. Generating in the build makes that failure
+mode impossible rather than intermittent.
 
 `migrate deploy` only applies migrations that already exist in
 `prisma/migrations/`; it never authors new ones. That is what makes it safe in a
@@ -131,9 +138,28 @@ against production.
 
 ## 6. Known constraints
 
-**Neon free tier scales to zero.** The first request after an idle period takes
-several seconds while the database wakes. Real, and worth knowing before you
-conclude the site is slow.
+**Neon free tier scales to zero.** Measured on this project: a cold
+`SELECT 1` takes ~2,300ms against ~250ms warm, so the wake-up costs roughly two
+seconds. It no longer lands on a visitor — every public page is prerendered (see
+below) and served from cache while any regeneration happens in the background.
+It is still paid on the registration path and on `/api/health/db`.
+
+**Public pages are prerendered, and stale for up to 60 seconds.** `/`, `/events`
+and `/events/[slug]` carry `revalidate = 60`, so a status flip or a slot count
+can lag by up to a minute. Writes through `/api/organizer/*` call
+`revalidatePublicEvent()` (`server/revalidate.ts`) and take effect immediately;
+`npm run event:status` goes through the service directly, cannot revalidate, and
+therefore does show that minute of staleness. Neither risks overselling — the
+conditional `UPDATE` in `registration.service.ts` is the authority, not the page.
+
+**The header reads the session in the browser, not on the server.** A root
+layout that touches cookies makes every route in the app dynamic, which is what
+previously put a Neon query on every page view. `components/layout/site-header.tsx`
+is synchronous and `HeaderAuthNav` calls `/api/auth/session` on the client. This
+is why `authConfig` sets `trustHost: true`: Auth.js otherwise rejects
+`/api/auth/*` on any host it does not recognise, which breaks the header on
+`next start` and on self-hosted deployments (Vercel sets `VERCEL=1` and would
+have masked it).
 
 **Rate limiting is per-instance.** `lib/rate-limit.ts` holds counters in process
 memory, so the effective limit is (limit × running instances) and resets on cold
@@ -154,4 +180,35 @@ committed, and `notFound()` can no longer set the status — producing soft-404s
 that Google will index. Five routes call `notFound()`; the smoke test guards
 against this regression.
 
-Result = Production deployment is not working need debugging and special attention to this matter
+---
+
+## 7. Production deploy: open issue
+
+The first deploy did not come up, and no error text was recorded at the time.
+There is nothing here to diagnose from, so start by reproducing it rather than
+guessing.
+
+**Reproduce with the real credentials.** This runs the same chain Vercel runs:
+
+```
+DATABASE_URL=<prod pooled> DIRECT_URL=<prod direct> npm run build
+```
+
+If that succeeds locally, the difference is environment, not code.
+
+**Then read the Vercel build log and let it pick from these.** In rough order of
+likelihood:
+
+1. `DIRECT_URL` missing, or set to the pooled string. `prisma migrate deploy`
+   cannot run through a pooler, and a failed migration fails the deploy by
+   design (§3).
+2. Variables set for Production but not Preview, or the reverse.
+3. `prisma generate` skipped because npm restored a cached `node_modules`.
+   Addressed — the build script now runs it explicitly (§3).
+4. Node outside the `engines` range in `package.json` (`>=22 <23 || >=24`).
+5. The OG image route's file tracing (`next.config.ts` `outputFileTracingIncludes`).
+   `npm run smoke` already guards this: it fetches the PNG and checks the IHDR
+   bytes are 1200×630.
+
+**Record the answer here** — the failing step and its fix — so the next
+iteration starts from evidence instead of from this paragraph.

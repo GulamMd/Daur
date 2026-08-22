@@ -1,62 +1,54 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { listEvents } from "@/server/services/event.service";
+import { listEvents, type EventCard as EventCardData } from "@/server/services/event.service";
 import { EventCard } from "@/components/event/event-card";
+import { EventTabs, EventTabsShell } from "@/components/event/event-tabs";
 
 export const metadata: Metadata = {
   title: "Events",
   description: "Upcoming and past Daur road races.",
 };
 
-const TABS = [
-  { key: "upcoming", label: "Upcoming" },
-  { key: "past", label: "Past" },
-] as const;
+/** Matches the event page, so the two never disagree about a status flip. */
+export const revalidate = 60;
 
-export default async function EventsPage({ searchParams }: PageProps<"/events">) {
-  const params = await searchParams;
-  const filter = params.show === "past" ? "past" : "upcoming";
-  const events = await listEvents(filter);
+export default async function EventsPage() {
+  // Both lists are fetched here rather than one per ?show= value: reading the
+  // query string on the server would make this route dynamic, and a dynamic
+  // route queries Neon on every visit. With a handful of events the extra
+  // payload is nothing next to a cold start.
+  const [upcoming, past] = await Promise.all([listEvents("upcoming"), listEvents("past")]);
+
+  const upcomingPanel = <EventPanel events={upcoming} filter="upcoming" />;
+  const pastPanel = <EventPanel events={past} filter="past" />;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <h1 className="font-display text-text text-2xl font-extrabold tracking-tight">Events</h1>
 
-      <nav aria-label="Filter events" className="mt-6">
-        <ul className="border-border flex gap-6 border-b text-sm">
-          {TABS.map((tab) => {
-            const active = filter === tab.key;
-            return (
-              <li key={tab.key}>
-                <Link
-                  href={tab.key === "upcoming" ? "/events" : "/events?show=past"}
-                  aria-current={active ? "page" : undefined}
-                  className={`-mb-px inline-block border-b-2 px-0.5 pb-3 transition-colors ${
-                    active
-                      ? "text-text border-[color:var(--daur-sodium)] font-medium"
-                      : "text-text-muted hover:text-text border-transparent"
-                  }`}
-                >
-                  {tab.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      {events.length === 0 ? (
-        <EmptyState filter={filter} />
-      ) : (
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2">
-          {events.map((event) => (
-            <li key={event.slug}>
-              <EventCard event={event} past={filter === "past"} />
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* useSearchParams renders this boundary's fallback during prerender, so
+          the fallback is the real Upcoming tab rather than a spinner — the
+          default view ships in the static HTML and crawlers see the full list.
+          A ?show=past deep link resolves on hydration. */}
+      <Suspense fallback={<EventTabsShell active="upcoming">{upcomingPanel}</EventTabsShell>}>
+        <EventTabs upcoming={upcomingPanel} past={pastPanel} />
+      </Suspense>
     </div>
+  );
+}
+
+function EventPanel({ events, filter }: { events: EventCardData[]; filter: "upcoming" | "past" }) {
+  if (events.length === 0) return <EmptyState filter={filter} />;
+
+  return (
+    <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+      {events.map((event) => (
+        <li key={event.slug}>
+          <EventCard event={event} past={filter === "past"} />
+        </li>
+      ))}
+    </ul>
   );
 }
 

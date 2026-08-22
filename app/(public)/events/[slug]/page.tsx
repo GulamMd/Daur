@@ -1,11 +1,27 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getEventBySlug } from "@/server/services/event.service";
+import { getEventBySlug, listPublicSlugs } from "@/server/services/event.service";
 import { EventSections } from "@/components/event/section-renderer";
 import { StickyCta } from "@/components/event/sticky-cta";
 import { effectiveStatus } from "@/lib/event-status";
 import { formatEventDate } from "@/lib/format";
 import { EventStatus } from "@/generated/prisma/enums";
+
+/**
+ * Prerendered at build time and refreshed at most once a minute.
+ *
+ * Sixty seconds rather than something longer because two things on this page
+ * are read from the clock and the slot counter, and both freeze at prerender:
+ * effectiveStatus() flips COMING_SOON to REGISTRATION_OPEN at
+ * registrationOpensAt, and StickyCta derives "Sold out" from slotsTaken. A
+ * minute bounds the lag on both. Overselling is not a risk either way — the
+ * conditional UPDATE in registration.service.ts is the authority, not this page.
+ */
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  return (await listPublicSlugs()).map(({ slug }) => ({ slug }));
+}
 
 export async function generateMetadata({ params }: PageProps<"/events/[slug]">): Promise<Metadata> {
   const { slug } = await params;

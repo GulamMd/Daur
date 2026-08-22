@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { getEventBySlug } from "@/server/services/event.service";
+import { getEventBySlug, listPublicSlugs } from "@/server/services/event.service";
 import { loadOgFonts, loadOgColors, sodiumGlow, OG_SIZE } from "@/lib/og-fonts";
 import { formatEventDate, formatTime } from "@/lib/format";
 import { effectiveStatus } from "@/lib/event-status";
@@ -8,6 +8,18 @@ import { EventStatus } from "@/generated/prisma/enums";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 export const alt = "Daur race";
+
+/**
+ * An image route does not inherit the page segment's generateStaticParams, so
+ * without these two the card was re-rendered — and the event re-queried — on
+ * every share preview fetch. Social crawlers hit this far more often than
+ * people hit the page.
+ */
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  return (await listPublicSlugs()).map(({ slug }) => ({ slug }));
+}
 
 /**
  * The preview card that renders when someone shares an event link on

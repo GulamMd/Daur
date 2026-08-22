@@ -7,6 +7,7 @@ import {
   SlotLimitBelowTakenError,
 } from "@/server/services/organizer.service";
 import { prisma } from "@/server/db";
+import { revalidatePublicEvent } from "@/server/revalidate";
 
 export async function GET() {
   const guard = await requireOrganizer();
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
 
   try {
     const event = await upsertEvent(parsed.data, guard.organizerId);
+    revalidatePublicEvent(event.slug);
     return NextResponse.json({ slug: event.slug }, { status: 200 });
   } catch (error) {
     if (error instanceof CategoryInUseError || error instanceof SlotLimitBelowTakenError) {

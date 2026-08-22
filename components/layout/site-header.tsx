@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { auth } from "@/server/auth";
-import { SignOutButton } from "@/components/auth/sign-out-button";
+import { HeaderAuthNav } from "@/components/layout/header-auth-nav";
 
-export async function SiteHeader() {
-  const session = await auth();
-
+/**
+ * Synchronous on purpose. This renders in the root layout, so any request-time
+ * data it reads — a session, a cookie, a header — would make every page in the
+ * app dynamic. The signed-in state lives in <HeaderAuthNav />, on the client.
+ */
+export function SiteHeader() {
   return (
     <header className="border-border bg-surface sticky top-0 z-40 border-b">
       <nav
@@ -24,27 +26,7 @@ export async function SiteHeader() {
               Events
             </Link>
           </li>
-          {session?.user ? (
-            <>
-              <li>
-                <Link
-                  href="/account/registrations"
-                  className="text-text-muted hover:text-text transition-colors"
-                >
-                  Account
-                </Link>
-              </li>
-              <li>
-                <SignOutButton />
-              </li>
-            </>
-          ) : (
-            <li>
-              <Link href="/login" className="text-text-muted hover:text-text transition-colors">
-                Log in
-              </Link>
-            </li>
-          )}
+          <HeaderAuthNav />
         </ul>
       </nav>
     </header>

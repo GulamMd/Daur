@@ -12,6 +12,12 @@ export const metadata: Metadata = {
     "Closed-road running events in Indian cities. Register yourself and the people you run with.",
 };
 
+/**
+ * The "Next race" CTA reads canRegister(), which is evaluated at prerender
+ * time, so this tracks the same one-minute cadence as the event page.
+ */
+export const revalidate = 60;
+
 export default async function HomePage() {
   const [upcoming, past] = await Promise.all([listEvents("upcoming"), listEvents("past")]);
   const next = upcoming[0];
