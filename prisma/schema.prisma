@@ -7,8 +7,9 @@
 // flags off at 05:00 IST cannot afford that ambiguity.
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider   = "prisma-client"
+  output     = "../generated/prisma"
+  engineType = "client"
 }
 
 datasource db {
