@@ -106,6 +106,34 @@ async function main() {
     `${locs.length} urls`,
   );
 
+  // Every check above this line reads a PRERENDERED page, which is served from
+  // static HTML built on a machine that had a working database client. None of
+  // them executes a query in the deployed function, so all of them stayed green
+  // through a deploy where Prisma's native query engine had not been traced into
+  // the bundle and every real database call 500'd.
+  //
+  // /api/health/db is dynamic and no-store, so it is the cheapest thing that
+  // proves the deployed runtime can actually reach Postgres.
+  console.log("\n=== database, from the deployed runtime ===");
+  const health = await get("/api/health/db");
+  check("GET /api/health/db", health.status === 200, `${health.status}`);
+  if (health.status === 200) {
+    const body = (await health.json()) as {
+      connectMs?: number;
+      queryMs?: number;
+      upcomingEvents?: number;
+    };
+    check(
+      "a query ran against the database",
+      typeof body.queryMs === "number",
+      `connect ${body.connectMs}ms, query ${body.queryMs}ms`,
+    );
+  } else {
+    // The engine-not-found failure surfaces here, so print enough to identify it.
+    const text = (await health.text()).slice(0, 300).replace(/\s+/g, " ");
+    check("database reachable", false, text || "(empty body)");
+  }
+
   console.log("\n=== security headers ===");
   const headers = (await get("/")).headers;
   const expected: [string, string][] = [

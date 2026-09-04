@@ -28,6 +28,20 @@ const nextConfig: NextConfig = {
   // locally and 500s in production with the files missing from the bundle.
   outputFileTracingIncludes: {
     "/events/[slug]/opengraph-image": ["./assets/fonts/**", "./app/styles/tokens.css"],
+
+    // Prisma's query engine is a ~20MB native binary that the client loads at
+    // runtime through a computed path, so static tracing never sees it. The
+    // generator writes it to a custom output dir (generated/prisma, see
+    // prisma/schema.prisma), which puts it outside node_modules where Next
+    // would otherwise find it. Without this every database call in production
+    // dies with "Could not locate the Query Engine for runtime
+    // rhel-openssl-3.0.x" — the deployment simply has no engine in it.
+    //
+    // "/*" is the documented global key: these globs are matched with
+    // picomatch({ contains: true }), so it is not limited to one path segment
+    // and does cover /api/auth/signup. Fully static routes get no trace file
+    // and are skipped automatically, so this costs nothing on those.
+    "/*": ["./generated/prisma/**"],
   },
 
   images: {

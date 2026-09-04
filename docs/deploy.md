@@ -212,4 +212,78 @@ likelihood:
 
 **Record the answer here** — the failing step and its fix — so the next
 iteration starts from evidence instead of from this paragraph.
-One reason of failing was the user of git connected to vercel was not committing latest changes.
+
+### Resolved: the Vercel git integration was deploying stale commits
+
+One cause was that the git account connected to Vercel was not pushing the
+latest changes, so the deploy under investigation was not the code being
+debugged. Check the commit SHA on the Vercel deployment before diagnosing
+anything else.
+
+### Resolved: Prisma's query engine was missing from the deployed function
+
+**Symptom.** Every public page worked. Anything that actually touched the
+database — signup first — failed at runtime:
+
+```
+Prisma Client could not locate the Query Engine for runtime "rhel-openssl-3.0.x".
+The following locations have been searched:
+  /ROOT/generated/prisma
+  /var/task/generated
+```
+
+**Cause.** `prisma/schema.prisma` generates the client to a custom output
+directory, `generated/prisma`, rather than into `node_modules`. The query engine
+is a ~20MB native binary that the client loads at runtime through a path it
+computes itself. Next's output file tracing cannot follow that, and because the
+directory is outside `node_modules` none of the usual fallbacks applied either.
+`prisma generate` had run correctly — the engine existed on the build machine and
+was simply never copied into the serverless bundle, which is exactly what
+Prisma's own error message says.
+
+**Fix.** `next.config.ts` now traces the directory into every server route:
+
+```ts
+outputFileTracingIncludes: {
+  "/*": ["./generated/prisma/**"],
+},
+```
+
+`"/*"` is the documented global key. These globs are matched with
+`picomatch({ contains: true })`, so it is not limited to a single path segment
+and does cover `/api/auth/signup`. Fully static routes produce no trace file and
+are skipped automatically.
+
+**Verify it before deploying**, because the failure is invisible locally — a
+local `npm run start` has the whole repo on disk and will always find the
+engine. Build, then confirm the binary is actually referenced by the route
+traces:
+
+```
+npm run build:app
+grep -l query_engine .next/server/**/*.nft.json
+```
+
+Expect a hit for every route that talks to the database. `middleware.js` is the
+one legitimate miss — `proxy.ts` is built from the edge-safe auth config and
+uses the JWT session strategy, so it never touches Prisma.
+
+**Why the smoke test missed it.** Every check it ran read a _prerendered_ page,
+served from HTML built on a machine that had a working client, so none of them
+executed a query in the deployed function. `npm run smoke` now also fetches
+`/api/health/db`, which is dynamic and `no-store` and therefore the cheapest
+thing that proves the deployed runtime can reach Postgres.
+
+**If it recurs**, the next thing to try is pinning the platform explicitly, in
+case Vercel's build image and its runtime ever diverge:
+
+```prisma
+generator client {
+  provider      = "prisma-client"
+  output        = "../generated/prisma"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+```
+
+This was not needed here: the build and the runtime are the same Amazon Linux
+image, so `native` already resolves to `rhel-openssl-3.0.x`.
