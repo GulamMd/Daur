@@ -39,9 +39,19 @@ const CHECKS = [
   ["bib on asphalt (hero)", C.bib, C.asphalt, 4.5, true],
   ["sodium on asphalt (hero accent)", C.sodium, C.asphalt, 4.5, true],
   ["chalk on asphalt", C.chalk, C.asphalt, 4.5, true],
+  // The status chip renders on BOTH grounds. On asphalt the derived inks are
+  // unreadable, so <StatusChip onDark> swaps them — these lock that in.
+  ["chip 'go' label on asphalt (chalk)", C.chalk, C.asphalt, 4.5, true],
+  ["chip 'go' dot on asphalt (UI)", C.signal, C.asphalt, 3.0, true],
+  ["chip 'soon' label on asphalt", C.sodium, C.asphalt, 4.5, true],
   // Negative control: this is WHY --daur-sodium-ink exists. If this ever
   // starts passing, the palette changed and the rule needs re-deriving.
   ["sodium as text on bib", C.sodium, C.bib, 4.5, false],
+  // Negative controls for the dark ground. These are the values the chip used
+  // to use in the hero, and they are the reason onDark exists.
+  ["signal-ink as text on asphalt", C.signalInk, C.asphalt, 4.5, false],
+  ["sodium-ink as text on asphalt", C.sodiumInk, C.asphalt, 4.5, false],
+  ["signal as chip TEXT on asphalt", C.signal, C.asphalt, 4.5, false],
 ];
 
 let failed = 0;

@@ -1,0 +1,68 @@
+{
+  "slug": "daur-bengaluru-edition-01",
+  "name": "Daur Bengaluru Edition 01",
+  "tagline": "Where it started.",
+  "status": "COMPLETED",
+  "refPrefix": "DBE",
+  "startAt": "2023-09-10T05:00:00+05:30",
+  "endAt": "2023-09-10T09:30:00+05:30",
+  "timezone": "Asia/Kolkata",
+  "registrationOpensAt": "2023-07-12T10:00:00+05:30",
+  "registrationClosesAt": "2023-09-07T23:59:00+05:30",
+  "venue": {
+    "name": "Cubbon Park",
+    "addressLine": "Kasturba Road, Sampangi Rama Nagara",
+    "city": "Bengaluru",
+    "state": "Karnataka",
+    "pincode": "560001",
+    "lat": 12.9763,
+    "lng": 77.5929,
+    "mapsUrl": "https://maps.google.com/?q=Cubbon+Park+Bengaluru"
+  },
+  "termsVersion": "v1",
+  "coverImageUrl": "/images/events/daur-bengaluru-edition-01.jpg",
+  "aboutMd": "The first Daur, run on 10 September 2023 with three hundred entries and one closed road.",
+  "rulesMd": "- Bibs are personal. Running on someone else's entry means both entries are cancelled.\n- Minimum ages are checked against your date of birth on race day, not on the day you register.\n- Headphones are allowed on the 5K only. The 10K and 21K share live traffic junctions.\n- Cut-off is 3 hours from your category's flag-off. Roads reopen on schedule.\n- Entries are not transferable between people or between distances.",
+  "categories": [
+    {
+      "name": "5K",
+      "distanceMeters": 5000,
+      "minAge": 12,
+      "startTime": "2023-09-10T06:00:00+05:30",
+      "slotLimit": 400,
+      "sortOrder": 1,
+      "descriptionMd": null
+    },
+    {
+      "name": "10K",
+      "distanceMeters": 10000,
+      "minAge": 16,
+      "startTime": "2023-09-10T05:30:00+05:30",
+      "slotLimit": 600,
+      "sortOrder": 2,
+      "descriptionMd": null
+    },
+    {
+      "name": "21K",
+      "distanceMeters": 21097,
+      "minAge": 18,
+      "startTime": "2023-09-10T05:00:00+05:30",
+      "slotLimit": 300,
+      "sortOrder": 3,
+      "descriptionMd": null
+    }
+  ],
+  "schedule": [],
+  "inclusions": [],
+  "routes": [],
+  "faqs": [],
+  "gallery": [],
+  "sections": [
+    "hero",
+    "facts",
+    "categories",
+    "about",
+    "venue",
+    "organizer"
+  ]
+}

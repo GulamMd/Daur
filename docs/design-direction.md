@@ -136,11 +136,51 @@ recurring edition and a real running order. Decorative `01 / 02 / 03` markers ap
 
 ## Motion
 
-One orchestrated moment, then restraint:
+_Amended after the home-page rebuild. The original budget read "one orchestrated
+moment, then restraint… nothing else." That was written for the event page, where
+a runner arrives already intending to register. The home page has to earn the
+scroll, so the budget is wider — but every addition still has to be literal to the
+subject, and it is all CSS._
 
-- **Page load:** the hero's identity strip staggers in over ~400ms, like a start-line countdown.
+- **Page load:** the hero's identity strip staggers in over ~400ms, like a
+  start-line countdown. (`.rise`)
+- **The streetlight drifts** as the hero scrolls away — sodium vapour pooling and
+  moving as you pass under it. Once per page, in the hero only. (`.glow-drift`)
+- **Cards rise in as you reach them**, 20px and a fade. (`.reveal`)
+- **Event cards:** 2px lift on hover, cover photo eases to 1.05, sodium tear-strip
+  scales in from the left. The lift is the same 2px the bib gets — a card is a
+  promise of a bib, so it moves like one.
 - **Bib cards:** 2px lift on hover, tear-strip appears.
-- Nothing else. `prefers-reduced-motion: reduce` resolves everything to final state.
+- Nothing else.
+
+### The rules that keep it honest
+
+- **No JavaScript.** Scroll motion is `animation-timeline: view()` / `scroll()`.
+  The only script on the home page is the Show more `useState`.
+- **Two gates, both load-bearing**, in `app/styles/tokens.css`:
+  `@supports (animation-timeline: view())` and
+  `@media (prefers-reduced-motion: no-preference)`. The global reduce switch only
+  shortens _durations_, and a scroll-driven animation has no duration — so without
+  the second gate a reduced-motion visitor gets content stranded at `opacity: 0`.
+- **Fallback is always the finished state.** Firefox has not shipped scroll-driven
+  animations, so this is live traffic, not a hypothetical.
+- **`.reveal` goes on a card, never a section.** An element taller than the
+  viewport never completes its `entry` range, and `overflow-hidden` (which every
+  card uses to clip its cover) creates a scroll container that `view()` would
+  resolve against instead of the page.
+
+## Photography
+
+Placeholder only. `public/images/` holds stock road-race photography from
+Unsplash so the calendar reads as a real product before real Daur photography
+exists; `public/images/CREDITS.md` records the photographer and source for every
+file. Swap the files and that table together.
+
+Covers are 16:10 and deliberately carry `alt=""` — the card's accessible name is
+the event name in its stretched link, and narrating a stock photo would prepend
+noise to every card a screen reader announces. An event with no cover is **not** a
+grey box: it falls back to its longest distance set as a bib numeral on asphalt
+under the streetlight, which is on-brand, carries real data, and costs no bytes.
 
 ## Copy
 

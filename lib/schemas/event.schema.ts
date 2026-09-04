@@ -99,8 +99,40 @@ const inclusionSchema = z.object({
   sortOrder: z.number().int().min(0).default(0),
 });
 
+/**
+ * An https URL (Cloudinary, per the deploy runbook) or a root-relative path
+ * under /images/ that we ship in public/. The second case exists because the
+ * launch photography is committed to the repo rather than uploaded, and
+ * z.url() alone rejects "/images/events/x.jpg" — the seed would not validate.
+ */
+const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "avif"] as const;
+
+const hasImageExtension = (value: string) =>
+  IMAGE_EXTENSIONS.some((ext) =>
+    value
+      .toLowerCase()
+      .split("?")[0]
+      .endsWith("." + ext),
+  );
+
+const imageRef = z
+  .string()
+  .trim()
+  .refine((value) => {
+    // Remote: an https CDN URL. z.url() alone is not enough — Zod accepts any
+    // scheme the URL parser does, including data: and javascript:, so the
+    // protocol is checked explicitly rather than trusted.
+    if (value.startsWith("https://")) {
+      return z.url().safeParse(value).success && hasImageExtension(value);
+    }
+    // Local: a file we ship in public/. Must be rooted at /images/ (which also
+    // rejects protocol-relative //evil.com/x.jpg), must not traverse, and must
+    // actually look like an image.
+    return value.startsWith("/images/") && !value.includes("..") && hasImageExtension(value);
+  }, "Use an https:// image URL, or a root-relative path such as /images/events/name.jpg.");
+
 const imageSchema = z.object({
-  url: z.url(),
+  url: imageRef,
   alt: z.string().trim().min(1, "Every image needs alt text.").max(200),
   kind: z.enum(["COVER", "GALLERY", "ROUTE_MAP"]).default("GALLERY"),
   sortOrder: z.number().int().min(0).default(0),
@@ -108,7 +140,7 @@ const imageSchema = z.object({
 
 const routeSchema = z.object({
   categoryName: z.string().trim().max(20).nullable().optional(),
-  mapImageUrl: z.url().nullable().optional(),
+  mapImageUrl: imageRef.nullable().optional(),
   gpxUrl: z.url().nullable().optional(),
   descriptionMd: z.string().max(4000).nullable().optional(),
   elevationGainM: z.number().int().min(0).max(10_000).nullable().optional(),
@@ -144,8 +176,8 @@ export const eventInputSchema = z
 
     venue: venueSchema,
 
-    coverImageUrl: z.url().nullable().optional(),
-    ogImageUrl: z.url().nullable().optional(),
+    coverImageUrl: imageRef.nullable().optional(),
+    ogImageUrl: imageRef.nullable().optional(),
 
     registrationOpensAt: instant.nullable().optional(),
     registrationClosesAt: instant.nullable().optional(),

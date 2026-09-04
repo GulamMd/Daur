@@ -1,0 +1,68 @@
+{
+  "slug": "daur-delhi-edition-01",
+  "name": "Daur Delhi Edition 01",
+  "tagline": "Kartavya Path, empty.",
+  "status": "COMPLETED",
+  "refPrefix": "DDL",
+  "startAt": "2025-11-16T05:00:00+05:30",
+  "endAt": "2025-11-16T09:30:00+05:30",
+  "timezone": "Asia/Kolkata",
+  "registrationOpensAt": "2025-09-25T10:00:00+05:30",
+  "registrationClosesAt": "2025-11-13T23:59:00+05:30",
+  "venue": {
+    "name": "Kartavya Path",
+    "addressLine": "Kartavya Path, Rajpath Area",
+    "city": "New Delhi",
+    "state": "Delhi",
+    "pincode": "110001",
+    "lat": 28.6129,
+    "lng": 77.2295,
+    "mapsUrl": "https://maps.google.com/?q=Kartavya+Path+New+Delhi"
+  },
+  "termsVersion": "v1",
+  "coverImageUrl": "/images/events/daur-delhi-edition-01.jpg",
+  "aboutMd": "The first Delhi edition, run on 16 November 2025 after a one-week postponement for air quality.",
+  "rulesMd": "- Bibs are personal. Running on someone else's entry means both entries are cancelled.\n- Minimum ages are checked against your date of birth on race day, not on the day you register.\n- Headphones are allowed on the 5K only. The 10K and 21K share live traffic junctions.\n- Cut-off is 3 hours from your category's flag-off. Roads reopen on schedule.\n- Entries are not transferable between people or between distances.",
+  "categories": [
+    {
+      "name": "5K",
+      "distanceMeters": 5000,
+      "minAge": 12,
+      "startTime": "2025-11-16T06:00:00+05:30",
+      "slotLimit": 400,
+      "sortOrder": 1,
+      "descriptionMd": null
+    },
+    {
+      "name": "10K",
+      "distanceMeters": 10000,
+      "minAge": 16,
+      "startTime": "2025-11-16T05:30:00+05:30",
+      "slotLimit": 600,
+      "sortOrder": 2,
+      "descriptionMd": null
+    },
+    {
+      "name": "21K",
+      "distanceMeters": 21097,
+      "minAge": 18,
+      "startTime": "2025-11-16T05:00:00+05:30",
+      "slotLimit": 300,
+      "sortOrder": 3,
+      "descriptionMd": null
+    }
+  ],
+  "schedule": [],
+  "inclusions": [],
+  "routes": [],
+  "faqs": [],
+  "gallery": [],
+  "sections": [
+    "hero",
+    "facts",
+    "categories",
+    "about",
+    "venue",
+    "organizer"
+  ]
+}

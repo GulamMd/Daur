@@ -46,6 +46,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${display.variable} ${body.variable} ${devanagari.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="bg-surface text-text flex min-h-full flex-col">

@@ -1,0 +1,130 @@
+{
+  "slug": "daur-mumbai-edition-01",
+  "name": "Daur Mumbai Edition 01",
+  "tagline": "The sea road, ours.",
+  "status": "REGISTRATION_OPEN",
+  "refPrefix": "DMU",
+  "startAt": "2026-10-11T05:00:00+05:30",
+  "endAt": "2026-10-11T09:30:00+05:30",
+  "timezone": "Asia/Kolkata",
+  "registrationOpensAt": "2026-08-15T10:00:00+05:30",
+  "registrationClosesAt": "2026-10-08T23:59:00+05:30",
+  "venue": {
+    "name": "Marine Drive",
+    "addressLine": "Netaji Subhash Chandra Bose Road",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "pincode": "400020",
+    "lat": 18.9438,
+    "lng": 72.8231,
+    "mapsUrl": "https://maps.google.com/?q=Marine+Drive+Mumbai"
+  },
+  "termsVersion": "v1",
+  "coverImageUrl": "/images/events/daur-mumbai-edition-01.jpg",
+  "aboutMd": "Marine Drive carries six lanes of traffic every day of the year. For four hours on a Sunday in October it carries runners instead, from Nariman Point to Girgaon Chowpatty and back.\n\nThe first Mumbai edition runs on fully closed roads with the sea on one side the whole way. Flat, fast, and finished before the humidity arrives.",
+  "rulesMd": "- Bibs are personal. Running on someone else's entry means both entries are cancelled.\n- Minimum ages are checked against your date of birth on race day, not on the day you register.\n- Headphones are allowed on the 5K only. The 10K and 21K share live traffic junctions.\n- Cut-off is 3 hours from your category's flag-off. Roads reopen on schedule.\n- Entries are not transferable between people or between distances.",
+  "categories": [
+    {
+      "name": "5K",
+      "distanceMeters": 5000,
+      "minAge": 12,
+      "startTime": "2026-10-11T06:00:00+05:30",
+      "slotLimit": 400,
+      "sortOrder": 1,
+      "descriptionMd": null
+    },
+    {
+      "name": "10K",
+      "distanceMeters": 10000,
+      "minAge": 16,
+      "startTime": "2026-10-11T05:30:00+05:30",
+      "slotLimit": 600,
+      "sortOrder": 2,
+      "descriptionMd": null
+    },
+    {
+      "name": "21K",
+      "distanceMeters": 21097,
+      "minAge": 18,
+      "startTime": "2026-10-11T05:00:00+05:30",
+      "slotLimit": 120,
+      "sortOrder": 3,
+      "descriptionMd": null
+    }
+  ],
+  "schedule": [
+    {
+      "timeLabel": "04:15",
+      "title": "Gates open",
+      "sortOrder": 1
+    },
+    {
+      "timeLabel": "05:00",
+      "title": "21K flag-off",
+      "sortOrder": 2
+    },
+    {
+      "timeLabel": "05:30",
+      "title": "10K flag-off",
+      "sortOrder": 3
+    },
+    {
+      "timeLabel": "06:00",
+      "title": "5K flag-off",
+      "sortOrder": 4
+    }
+  ],
+  "inclusions": [
+    {
+      "icon": "medal",
+      "title": "Finisher medal",
+      "description": "Every distance, on crossing the line.",
+      "sortOrder": 1
+    },
+    {
+      "icon": "shirt",
+      "title": "Race tee",
+      "description": "Collected with your bib the day before.",
+      "sortOrder": 2
+    },
+    {
+      "icon": "droplet",
+      "title": "Aid stations",
+      "description": "Every 2.5 km on the 10K and 21K.",
+      "sortOrder": 3
+    },
+    {
+      "icon": "cross",
+      "title": "Medical support",
+      "description": "Ambulance at the start and two points on course.",
+      "sortOrder": 4
+    },
+    {
+      "icon": "bag",
+      "title": "Baggage counter",
+      "description": "At the Cubbon Park bandstand.",
+      "sortOrder": 5
+    },
+    {
+      "icon": "coffee",
+      "title": "Post-run refreshments",
+      "sortOrder": 6
+    }
+  ],
+  "routes": [],
+  "faqs": [],
+  "gallery": [],
+  "sections": [
+    "hero",
+    "facts",
+    "categories",
+    "about",
+    "route",
+    "schedule",
+    "inclusions",
+    "venue",
+    "faqs",
+    "rules",
+    "organizer"
+  ]
+}

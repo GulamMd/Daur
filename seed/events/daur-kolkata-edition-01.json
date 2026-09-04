@@ -1,0 +1,68 @@
+{
+  "slug": "daur-kolkata-edition-01",
+  "name": "Daur Kolkata Edition 01",
+  "tagline": "Called off, not called quits.",
+  "status": "CANCELLED",
+  "refPrefix": "DKO",
+  "startAt": "2026-02-08T05:00:00+05:30",
+  "endAt": "2026-02-08T09:30:00+05:30",
+  "timezone": "Asia/Kolkata",
+  "registrationOpensAt": "2025-12-01T10:00:00+05:30",
+  "registrationClosesAt": "2026-02-05T23:59:00+05:30",
+  "venue": {
+    "name": "Red Road",
+    "addressLine": "Indira Gandhi Sarani, Maidan",
+    "city": "Kolkata",
+    "state": "West Bengal",
+    "pincode": "700021",
+    "lat": 22.557,
+    "lng": 88.3446,
+    "mapsUrl": "https://maps.google.com/?q=Red+Road+Kolkata"
+  },
+  "termsVersion": "v1",
+  "coverImageUrl": null,
+  "aboutMd": "Called off eleven days out when the road closure permit was withdrawn. Every entry was refunded in full. Kolkata returns.",
+  "rulesMd": "- Bibs are personal. Running on someone else's entry means both entries are cancelled.\n- Minimum ages are checked against your date of birth on race day, not on the day you register.\n- Headphones are allowed on the 5K only. The 10K and 21K share live traffic junctions.\n- Cut-off is 3 hours from your category's flag-off. Roads reopen on schedule.\n- Entries are not transferable between people or between distances.",
+  "categories": [
+    {
+      "name": "5K",
+      "distanceMeters": 5000,
+      "minAge": 12,
+      "startTime": "2026-02-08T06:00:00+05:30",
+      "slotLimit": 400,
+      "sortOrder": 1,
+      "descriptionMd": null
+    },
+    {
+      "name": "10K",
+      "distanceMeters": 10000,
+      "minAge": 16,
+      "startTime": "2026-02-08T05:30:00+05:30",
+      "slotLimit": 600,
+      "sortOrder": 2,
+      "descriptionMd": null
+    },
+    {
+      "name": "21K",
+      "distanceMeters": 21097,
+      "minAge": 18,
+      "startTime": "2026-02-08T05:00:00+05:30",
+      "slotLimit": 300,
+      "sortOrder": 3,
+      "descriptionMd": null
+    }
+  ],
+  "schedule": [],
+  "inclusions": [],
+  "routes": [],
+  "faqs": [],
+  "gallery": [],
+  "sections": [
+    "hero",
+    "facts",
+    "categories",
+    "about",
+    "venue",
+    "organizer"
+  ]
+}

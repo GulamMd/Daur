@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { listEvents } from "@/server/services/event.service";
 import { EventCard } from "@/components/event/event-card";
+import { ShowMore } from "@/components/event/show-more";
 import { StatusChip } from "@/components/event/status-chip";
 import { ctaLabel, canRegister } from "@/lib/event-status";
 import { formatEventDate, formatTime } from "@/lib/format";
@@ -18,15 +20,40 @@ export const metadata: Metadata = {
  */
 export const revalidate = 60;
 
+/** How many cards a grid shows before asking. Matches ShowMore's default. */
+const STEP = 6;
+
 export default async function HomePage() {
-  const [upcoming, past] = await Promise.all([listEvents("upcoming"), listEvents("past")]);
+  // Both lists are bounded. Every card fetched is rendered into the static
+  // HTML so the listing stays crawlable, which means an unbounded past archive
+  // would grow this page's payload forever. /events is where everything lives.
+  const [upcoming, past] = await Promise.all([
+    listEvents("upcoming", new Date(), 13),
+    listEvents("past", new Date(), 12),
+  ]);
   const next = upcoming[0];
   const rest = upcoming.slice(1);
 
   return (
     <>
       {/* The race starts in the dark, so the page does too. */}
-      <section className="on-asphalt sodium-glow">
+      <section className="on-asphalt relative isolate overflow-hidden">
+        <Image
+          src="/images/hero/dawn-road.jpg"
+          alt=""
+          fill
+          loading="eager"
+          fetchPriority="high"
+          sizes="100vw"
+          className="-z-20 object-cover opacity-55"
+        />
+        {/* Order is the whole trick here. The photograph is the ground, the
+            scrim puts asphalt back over it so the type has something to sit on,
+            and the streetlight goes on TOP of both — it is a light source, and
+            a scrim painted over it would put the lamp behind the fog. */}
+        <div aria-hidden="true" className="hero-scrim absolute inset-0 -z-10" />
+        <div aria-hidden="true" className="sodium-glow glow-drift absolute inset-0 -z-10" />
+
         <div className="mx-auto max-w-5xl px-4 py-20 sm:py-28">
           <p className="eyebrow rise text-chalk/70">
             Daur <span className="font-deva">दौड़</span>
@@ -59,21 +86,36 @@ export default async function HomePage() {
 
       {/* Daylight. */}
       <div className="mx-auto max-w-5xl px-4 py-14">
-        {rest.length > 0 && (
-          <section>
-            <h2 className="eyebrow text-text-muted">Also coming up</h2>
-            <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+        {/* Unconditional. This section being hidden when there was a single
+            event is what made the home page a dead end. */}
+        <section>
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 className="eyebrow text-text-muted">The calendar</h2>
+            <Link
+              href="/events"
+              className="text-text-muted hover:text-text text-sm underline underline-offset-4"
+            >
+              All events
+            </Link>
+          </div>
+
+          {rest.length > 0 ? (
+            <ShowMore step={STEP} label="upcoming races">
               {rest.map((event) => (
-                <li key={event.slug}>
-                  <EventCard event={event} />
-                </li>
+                <EventCard key={event.slug} event={event} />
               ))}
-            </ul>
-          </section>
-        )}
+            </ShowMore>
+          ) : (
+            <p className="text-text-muted mt-4 text-sm">
+              {next
+                ? "One race on the calendar right now. The next dates go up here first."
+                : "No races on the calendar right now. The next dates go up here first."}
+            </p>
+          )}
+        </section>
 
         {past.length > 0 && (
-          <section className={rest.length > 0 ? "mt-14" : ""}>
+          <section className="mt-14">
             <div className="flex items-baseline justify-between gap-4">
               <h2 className="eyebrow text-text-muted">Past editions</h2>
               <Link
@@ -83,15 +125,23 @@ export default async function HomePage() {
                 All editions
               </Link>
             </div>
-            <ul className="mt-4 grid gap-4 sm:grid-cols-2">
-              {past.slice(0, 4).map((event) => (
-                <li key={event.slug}>
-                  <EventCard event={event} past />
-                </li>
+            <ShowMore step={STEP} label="past editions">
+              {past.map((event) => (
+                <EventCard key={event.slug} event={event} past />
               ))}
-            </ul>
+            </ShowMore>
           </section>
         )}
+
+        <section className="reveal mt-14">
+          <hr className="lane-rule" />
+          <p className="text-text-muted mt-6 text-sm">
+            Every Daur race is run on closed roads, marshalled end to end, and measured.{" "}
+            <Link href="/events" className="text-text underline underline-offset-4">
+              Browse every edition
+            </Link>
+          </p>
+        </section>
       </div>
     </>
   );
@@ -107,7 +157,7 @@ function NextEvent({ event }: { event: Awaited<ReturnType<typeof listEvents>>[nu
     >
       <div className="flex items-start justify-between gap-3">
         <p className="eyebrow text-sodium">Next race</p>
-        <StatusChip event={event} timeZone={event.timezone} />
+        <StatusChip event={event} timeZone={event.timezone} onDark />
       </div>
 
       <h2 className="font-display mt-3 text-2xl font-extrabold tracking-tight">

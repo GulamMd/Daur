@@ -148,6 +148,27 @@ describe("eventInputSchema", () => {
     expect(eventInputSchema.safeParse(event()).success).toBe(true);
   });
 
+  // Images live either on the CDN or in this repo. z.url() alone rejects a
+  // root-relative path outright, which made committing a photo to public/
+  // impossible — the seed would not validate.
+  it.each([
+    ["a root-relative path we ship ourselves", "/images/events/daur-mumbai-edition-01.jpg"],
+    ["an https CDN URL", "https://res.cloudinary.com/daur/image/upload/cover.jpg"],
+  ])("accepts a coverImageUrl that is %s", (_label, coverImageUrl) => {
+    expect(eventInputSchema.safeParse(event({ coverImageUrl })).success).toBe(true);
+  });
+
+  it.each([
+    ["a protocol-relative URL", "//evil.com/x.jpg"],
+    ["a path traversal", "/images/../../secret.jpg"],
+    ["a path with no leading slash", "images/x.jpg"],
+    ["a path outside /images/", "/uploads/x.jpg"],
+    ["a non-image extension", "/images/x.txt"],
+    ["a data URI", "data:image/png;base64,AAAA"],
+  ])("rejects a coverImageUrl that is %s", (_label, coverImageUrl) => {
+    expect(eventInputSchema.safeParse(event({ coverImageUrl })).success).toBe(false);
+  });
+
   it("demands an explicit UTC offset on every instant", () => {
     // Without this, Date.parse treats the value as local time and a 05:00 IST
     // flag-off silently shifts depending on where the seed script runs.

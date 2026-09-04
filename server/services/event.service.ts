@@ -41,7 +41,17 @@ const CARD_FIELDS = {
   },
 } as const;
 
-export async function listEvents(filter: "upcoming" | "past" = "upcoming", now = new Date()) {
+/**
+ * `take` bounds the result set. The home page renders every card it fetches
+ * into static HTML so the listing stays crawlable, which means an unbounded
+ * past archive would grow that payload forever. /events passes no `take` and
+ * is unchanged. The @@index([status, startAt]) already covers this ordering.
+ */
+export async function listEvents(
+  filter: "upcoming" | "past" = "upcoming",
+  now = new Date(),
+  take?: number,
+) {
   return prisma.event.findMany({
     where: {
       status: { in: PUBLIC_STATUSES },
@@ -49,6 +59,7 @@ export async function listEvents(filter: "upcoming" | "past" = "upcoming", now =
     },
     orderBy: { startAt: filter === "upcoming" ? "asc" : "desc" },
     select: CARD_FIELDS,
+    ...(take === undefined ? {} : { take }),
   });
 }
 
